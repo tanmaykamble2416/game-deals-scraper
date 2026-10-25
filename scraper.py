@@ -1,42 +1,46 @@
-from bs4 import BeautifulSoup
+import requests
 
-def get_game_deals(html):
-    """Extract game titles and prices from HTML."""
-    soup = BeautifulSoup(html, "html.parser")
-    
-    games = soup.find_all("div", class_="game")
-    if not games:
-      print("No games found in the HTML.")
-      return []
- 
-    deals = []
 
-    for game in games:
-        title_element=game.find("h2")
-        price_element=game.find("p")
+def fetch_game_deals(limit=5):
+    """Fetch game deals from the CheapShark API."""
 
-        if title_element is None or price_element is None:
-           continue
-        deal={
-            "title":title_element.get_text(strip=True),
-             "price":price_element.get_text(strip=True)
+    url = "https://www.cheapshark.com/api/1.0/deals"
 
-        }
-        
-    
+    params = {
+        "pageSize": limit
+    }
 
-        deals.append(deal)
+    headers = {
+        "User-Agent": "GameDealsScraper/1.0"
+    }
+
+    try:
+        response = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=(5, 30)
+        )
+
+        response.raise_for_status()
+
+        deals = response.json()
+
         return deals
 
+    except requests.exceptions.RequestException as error:
+        print("Failed to fetch game deals:", error)
+        return []
+
+
 if __name__ == "__main__":
- sample_html = """ <html> <body> 
-       
-    </body>
-</html>
-"""
+    from database import create_database, save_game_deals
 
-game_deals = get_game_deals(sample_html)
+    create_database()
 
-for deal in game_deals:
-    print(deal)
+    deals = fetch_game_deals(10)
 
+    if deals:
+        save_game_deals(deals)
+    else:
+        print("No game deals were fetched.")
