@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Game Deals | Dashboard</title>
+
+<!-- Load our CSS stylesheet -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<!-- Icons -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+```
+
+</head>
+
+<body>
+    <div class="app-container">
+
+```
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-gamepad"></i>
+            </div>
+            <div>
+                <h2>Deal<span>Quest</span></h2>
+                <p>GAME INTELLIGENCE</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <p class="nav-heading">WORKSPACE</p>
+
+            <a href="#overview" class="nav-link active">
+                <i class="fa-solid fa-chart-pie"></i>
+                <span>Overview</span>
+            </a>
+
+            <a href="#deals-section" class="nav-link">
+                <i class="fa-solid fa-tags"></i>
+                <span>All Deals</span>
+            </a>
+
+            <a href="#deals-section" class="nav-link">
+                <i class="fa-solid fa-arrow-trend-down"></i>
+                <span>Best Discounts</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span>Database Connected</span>
+            </div>
+
+            <div class="sidebar-footer">
+                <i class="fa-solid fa-code"></i>
+                <span>Built with Python & Flask</span>
+            </div>
+        </div>
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div>
+                <p class="breadcrumb">WORKSPACE / OVERVIEW</p>
+                <h1>Game Deals Dashboard</h1>
+                <p class="page-subtitle">
+                    Discover deals. Compare prices. Save more.
+                </p>
+            </div>
+
+            <div class="topbar-actions">
+                <span class="live-status">
+                    <span class="status-dot"></span>
+                    Local Database
+                </span>
+
+                <!-- This button will be connected to the API later -->
+                <button class="btn btn-primary"
+                        id="refreshButton"
+                        type="button">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>Refresh Deals</span>
+                </button>
+            </div>
+        </header>
+
+
+        <!-- Overview -->
+        <section class="stats-grid" id="overview">
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">TOTAL DEALS</span>
+                    <div class="stat-icon icon-teal">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                </div>
+
+                <h2 id="totalDeals">{{ deals|length }}</h2>
+
+                <p class="stat-description">
+                    <i class="fa-solid fa-database"></i>
+                    Deals stored locally
+                </p>
+            </article>
+
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">AVERAGE DISCOUNT</span>
+                    <div class="stat-icon icon-green">
+                        <i class="fa-solid fa-percent"></i>
+                    </div>
+                </div>
+
+                <h2 id="averageDiscount">
+                    {% if deals %}
+                        {{ (deals|sum(attribute=4) / deals|length)|round|int }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </h2>
+
+                <p class="stat-description">
+                    <i class="fa-solid fa-chart-line"></i>
+                    Across saved deals
+                </p>
+            </article>
+
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">LOWEST SALE PRICE</span>
+                    <div class="stat-icon icon-purple">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                </div>
+
+                <h2 id="lowestPrice">
+    {% if deals %}
+        ${{ "%.2f"|format(deals|min(attribute=3)|last) }}
+    {% else %}
+        $0.00
+    {% endif %}
+</h2>
+   
+
+                <p class="stat-description">
+                    <i class="fa-solid fa-tag"></i>
+                    Cheapest saved game
+                </p>
+            </article>
+
+
+            <article class="stat-card">
+                <div class="stat-top">
+                    <span class="stat-label">POTENTIAL SAVINGS</span>
+                    <div class="stat-icon icon-orange">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+                </div>
+
+                <h2 id="potentialSavings">
+                    {% if deals %}
+                        ${{ "%.2f"|format(deals|sum(attribute=2) - deals|sum(attribute=3)) }}
+                    {% else %}
+                        $0.00
+                    {% endif %}
+                </h2>
+
+                <p class="stat-description">
+                    <i class="fa-solid fa-coins"></i>
+                    If you bought every deal
+                </p>
+            </article>
+
+        </section>
+
+
+        <!-- Deals Section -->
+        <section class="deals-section" id="deals-section">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Available Deals</h2>
+                    <p>Compare prices and find your next game.</p>
+                </div>
+
+                <span class="results-count" id="resultsCount">
+                    {{ deals|length }} deals
+                </span>
+            </div>
+
+
+            <!-- Search and Filters -->
+            <div class="filter-bar">
+
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input
+                        type="search"
+                        id="searchInput"
+                        placeholder="Search games..."
+                        aria-label="Search games">
+                    <kbd> / </kbd>
+                </div>
+
+
+                <div class="filter-group">
+                    <label for="discountFilter">Minimum discount</label>
+                    <select id="discountFilter">
+                        <option value="0">All discounts</option>
+                        <option value="10">10% or more</option>
+                        <option value="25">25% or more</option>
+                        <option value="50">50% or more</option>
+                        <option value="75">75% or more</option>
+                    </select>
+                </div>
+
+
+                <div class="filter-group">
+                    <label for="sortSelect">Sort by</label>
+                    <select id="sortSelect">
+                        <option value="discount-desc">Highest discount</option>
+                        <option value="price-asc">Lowest sale price</option>
+                        <option value="price-desc">Highest sale price</option>
+                        <option value="title-asc">Game name A–Z</option>
+                        <option value="title-desc">Game name Z–A</option>
+                    </select>
+                </div>
+
+            </div>
+
+
+            <!-- Table -->
+            <div class="table-wrapper">
+                <table id="dealsTable">
+
+                    <thead>
+                        <tr>
+                            <th>GAME</th>
+                            <th>ORIGINAL PRICE</th>
+                            <th>SALE PRICE</th>
+                            <th>DISCOUNT</th>
+                            <th>YOU SAVE</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="dealsTableBody">
+
+                        {% for deal in deals %}
+                        <tr
+                            class="deal-row"
+                            data-title="{{ deal[1]|lower }}"
+                            data-original="{{ deal[2] }}"
+                            data-price="{{ deal[3] }}"
+                            data-discount="{{ deal[4] }}">
+
+                            <td>
+                                <div class="game-info">
+                                    <div class="game-icon">
+                                        <i class="fa-solid fa-gamepad"></i>
+                                    </div>
+
+                                    <div class="game-details">
+                                        <span class="game-title">
+                                            {{ deal[1] }}
+                                        </span>
+                                        <span class="game-subtitle">
+                                            PC Game Deal
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="original-price">
+                                    ${{ "%.2f"|format(deal[2]) }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="sale-price">
+                                    ${{ "%.2f"|format(deal[3]) }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="discount-badge">
+                                    <i class="fa-solid fa-arrow-down"></i>
+                                    {{ deal[4]|round|int }}%
+                                </span>
+                            </td>
+
+                            <td>
+                                <span class="saving-amount">
+                                    ${{ "%.2f"|format(deal[2] - deal[3]) }}
+                                </span>
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <i class="fa-solid fa-box-open"></i>
+                                <h3>No deals found</h3>
+                                <p>Fetch some deals to populate your dashboard.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+
+
+            <!-- Empty Search Result -->
+            <div class="no-results" id="noResults" hidden>
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <h3>No matching games</h3>
+                <p>Try another search or change your filters.</p>
+            </div>
+
+
+            <!-- Pagination -->
+            <div class="pagination-bar">
+                <p id="paginationInfo">Showing all deals</p>
+
+                <div class="pagination-controls">
+                    <button type="button" id="previousPage" class="page-btn">
+                        <i class="fa-solid fa-chevron-left"></i>
+                        Previous
+                    </button>
+
+                    <span id="pageNumber">Page 1</span>
+
+                    <button type="button" id="nextPage" class="page-btn">
+                        Next
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>
+                <i class="fa-solid fa-gamepad"></i>
+                DealQuest <span>·</span> Game Deals Intelligence
+            </p>
+
+            <p>
+                Powered by Python, Flask & SQLite
+            </p>
+        </footer>
+
+    </main>
+</div>
+
+
+<!-- Dashboard interactions -->
+<script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+```
+
+</body>
+</html>

@@ -1,7 +1,7 @@
-# Python virtual environment
+# Virtual environment
 .venv/
 
-# Python cache files
+# Python cache
 __pycache__/
 *.py[cod]
 
@@ -10,3 +10,7 @@ __pycache__/
 
 # Local databases and backups
 *.db
+
+# Local database maintenance scripts
+check_deals.py
+migrate.py
